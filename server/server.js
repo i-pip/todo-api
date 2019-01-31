@@ -91,7 +91,7 @@ app.get("/users/:id", (req, res) => {
   //error
 });
 
-app.listen(3000, () => {
+app.listen(PORT, () => {
   console.log(`Started up at port ${PORT}`);
 });
 
