@@ -14,7 +14,6 @@ app.use(bodyParser.json());
 app.get("/", (req, res) => {
   Todo.find()
     .then(todos => {
-      console.log("todos: ", todos);
       res.send({ todos });
     })
     .catch(e => {
