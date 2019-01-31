@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const { ObjectID } = require("mongodb");
+const { mongoose } = require("./db/mongoose");
 
 const { User } = require("./models/user");
 const { Todo } = require("./models/todo");
@@ -9,6 +10,17 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 
 app.use(bodyParser.json());
+
+app.get("/", (req, res) => {
+  Todo.find()
+    .then(todos => {
+      console.log("todos: ", todos);
+      res.send({ todos });
+    })
+    .catch(e => {
+      res.status(400).send(e);
+    });
+});
 
 app.post("/todos", (req, res) => {
   const todo = new Todo({
