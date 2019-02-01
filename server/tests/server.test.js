@@ -17,7 +17,7 @@ const todos = [
 ];
 
 beforeEach(done => {
-  Todo.remove({})
+  Todo.deleteMany({})
     .then(() => {
       return Todo.insertMany(todos);
     })
@@ -144,6 +144,51 @@ describe("DELETE /todos/:id", () => {
         //     done(res);
         //   });
         //expect(null).toNotExist();
+      });
+  });
+});
+
+describe("PATCH /todos/:id", () => {
+  it("should update a todo", done => {
+    const id = todos[0]._id.toHexString();
+    const todoUpdate = { text: "Some new text", completed: true };
+
+    request(app)
+      .patch(`/todos/${id}`)
+      .send(todoUpdate)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.todo.text).toBe(todoUpdate.text);
+        expect(res.body.todo.completed).toBe(true);
+        expect(res.body.todo.completedAt).toBeA("number");
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        done();
+      });
+  });
+
+  it("should clear completedAt when todo is not completed", done => {
+    const id = todos[1]._id.toHexString();
+    const todoUpdate = { text: "Some updated todo", completed: false };
+
+    request(app)
+      .patch(`/todos/${id}`)
+      .send(todoUpdate)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.todo.text).toEqual(todoUpdate.text);
+        expect(res.body.todo.completed).toBe(false);
+        expect(res.body.todo.completedAt).toNotExist();
+      })
+      .end((err, result) => {
+        if (err) {
+          return done(err);
+        }
+        done();
       });
   });
 });
