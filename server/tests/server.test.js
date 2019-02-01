@@ -108,3 +108,42 @@ describe("GET /todos/:id", () => {
       .end(done);
   });
 });
+
+describe("DELETE /todos/:id", () => {
+  it("should remove a todo", done => {
+    const id = todos[1]._id.toHexString();
+
+    request(app)
+      .delete(`/todos/${id}`)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.todo._id).toBe(id);
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        // query database using findById toNotExist
+        Todo.findById(id)
+          .then(todo => {
+            expect(todo).toNotExist();
+            done();
+          })
+          .catch(e => done(e));
+        // request(app)
+        //   .get(`/todos/${id}`)
+        //   .expect(404)
+        //   .expect(res => {
+        //     expect(res.body.todo).toNotExist();
+        //   })
+        //   .end((err, res) => {
+        //     if (err) {
+        //       return done(err);
+        //     }
+        //     done(res);
+        //   });
+        //expect(null).toNotExist();
+      });
+  });
+});
