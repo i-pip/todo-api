@@ -116,13 +116,13 @@ app.delete("/todos/:id", (req, res) => {
 app.patch("/todos/:id", (req, res) => {
   const { id } = req.params;
   //select properties that a user is allowd to update if they exist
-  const body = _.pick(req.body, ["text", "completed"]);
+  let body = _.pick(req.body, ["text", "completed"]);
   if (!ObjectID.isValid(id)) {
     return res.status(400).send({ error: "invalid id" });
   }
 
   if (_.isBoolean(body.completed) && body.completed) {
-    body = completedAt = new Date().getTime();
+    body.completedAt = new Date().getTime();
   } else {
     body.completed = false;
     body.completedAt = null;
@@ -135,7 +135,10 @@ app.patch("/todos/:id", (req, res) => {
       }
       res.send({ todo });
     })
-    .catch(err => res.status(400).send());
+    .catch(err => {
+      console.log(err);
+      res.status(400).send();
+    });
 });
 
 app.listen(PORT, () => {
