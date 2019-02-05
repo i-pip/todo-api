@@ -1,9 +1,9 @@
 require("./config/config");
+require("./db/mongoose");
 const express = require("express");
 const _ = require("lodash");
 const bodyParser = require("body-parser");
 const { ObjectID } = require("mongodb");
-const { mongoose } = require("./db/mongoose");
 
 const { User } = require("./models/user");
 const { Todo } = require("./models/todo");
@@ -69,30 +69,6 @@ app.get("/todos/:id", (req, res) => {
     });
 });
 
-app.get("/users/:id", (req, res) => {
-  // req.params
-  const id = req.params.id;
-  if (!ObjectID.isValid(id)) {
-    res.status(404).send();
-  }
-
-  //findById
-  User.findById(id)
-    .then(user => {
-      if (!user) {
-        res.status(404).send();
-      }
-
-      res.status(200).send(user);
-    })
-    .catch(e => {
-      res.status(400).send("Error getting user", e);
-    });
-  //success
-
-  //error
-});
-
 app.delete("/todos/:id", (req, res) => {
   //get id
   const { id } = req.params;
@@ -138,6 +114,78 @@ app.patch("/todos/:id", (req, res) => {
     })
     .catch(err => {
       console.log(err);
+      res.status(400).send();
+    });
+});
+
+app.post("/users", (req, res) => {
+  const { email, password } = req.body;
+  const user = new User({
+    email,
+    password
+  });
+
+  user
+    .save()
+    .then(() => {
+      return user.generateAuthToken();
+    })
+    .then(token => {
+      res.header("x-auth", token).send(user.toJson());
+    })
+    .catch(e => {
+      res.status(400).send(e);
+    });
+});
+
+app.get("/users", (req, res) => {
+  User.find()
+    .then(users => {
+      res.send({ users });
+    })
+    .catch(e => {
+      res.status(400).send(e);
+    });
+});
+
+app.get("/users/:id", (req, res) => {
+  const { id } = req.params;
+  if (!ObjectID.isValid(id)) {
+    console.log("invalid user id: ", id);
+    return res.status(404).send("invalid user id");
+  }
+
+  //findById
+  User.findById(id)
+    .then(user => {
+      if (!user) {
+        return res.status(404).send();
+      }
+
+      res.send({ user });
+    })
+    .catch(e => {
+      res.status(400).send("Error getting user");
+    });
+});
+
+app.delete("/users/:id", (req, res) => {
+  //get id
+  const { id } = req.params;
+  //validate id
+  if (!ObjectID.isValid(id)) {
+    return res.status(400).send({ error: "invalid id" });
+  }
+  //remove todo
+  User.findByIdAndDelete(id)
+    .then(user => {
+      if (!user) {
+        return res.status(404).send();
+      }
+
+      res.send({ user });
+    })
+    .catch(err => {
       res.status(400).send();
     });
 });
