@@ -148,26 +148,26 @@ app.get("/users", (req, res) => {
     });
 });
 
-app.get("/users/:id", (req, res) => {
-  const { id } = req.params;
-  if (!ObjectID.isValid(id)) {
-    console.log("invalid user id: ", id);
-    return res.status(404).send("invalid user id");
-  }
+// app.get("/users/:id", (req, res) => {
+//   const { id } = req.params;
+//   if (!ObjectID.isValid(id)) {
+//     console.log("invalid user id: ", id);
+//     return res.status(404).send("invalid user id");
+//   }
 
-  //findById
-  User.findById(id)
-    .then(user => {
-      if (!user) {
-        return res.status(404).send();
-      }
+//   //findById
+//   User.findById(id)
+//     .then(user => {
+//       if (!user) {
+//         return res.status(404).send();
+//       }
 
-      res.send({ user });
-    })
-    .catch(e => {
-      res.status(400).send("Error getting user");
-    });
-});
+//       res.send({ user });
+//     })
+//     .catch(e => {
+//       res.status(400).send("Error getting user");
+//     });
+// });
 
 app.delete("/users/:id", (req, res) => {
   //get id
@@ -192,6 +192,21 @@ app.delete("/users/:id", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Started up at port ${PORT}`);
+});
+
+app.get("/users/me", (req, res) => {
+  const token = req.header("x-auth");
+
+  User.findByToken(token)
+    .then(user => {
+      if (!user) {
+        return Promise.reject();
+      }
+      res.send(user.toJson());
+    })
+    .catch(e => {
+      res.status(401).send(e);
+    });
 });
 
 module.exports = { app };

@@ -55,6 +55,27 @@ UserSchema.methods.toJson = function() {
   return _.pick(userObject, ["_id", "email"]);
 };
 
+//Works like .methods but acessible on the Model
+//itself not its instance
+UserSchema.statics.findByToken = function(token) {
+  const User = this;
+  let decoded;
+
+  try {
+    decoded = jwt.verify(token, "somesecret");
+  } catch (err) {
+    // return new Promise((resolve, reject) => {
+    //   reject("Invalid token");
+    // });
+    return Promise.reject("Invalid token");
+  }
+  return User.findOne({
+    _id: decoded.id,
+    "tokens.token": token,
+    "tokens.access": "auth"
+  });
+};
+
 const User = mongoose.model("User", UserSchema);
 
 module.exports = {
