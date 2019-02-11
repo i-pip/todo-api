@@ -205,6 +205,19 @@ app.post("/users/login", (req, res) => {
     });
 });
 
+app.delete("/users/me/token", authenticate, (req, res) => {
+  console.log("User: ", req.user);
+  req.user
+    .removeToken(req.token)
+    .then(() => {
+      res.status(200).send();
+    })
+    .catch(err => {
+      console.log("error: ", err);
+      return res.status(400).send();
+    });
+});
+
 app.listen(PORT, () => {
   console.log(`Started up at port ${PORT}`);
 });
@@ -213,7 +226,7 @@ app.listen(PORT, () => {
 //processing won't continue until next is called
 
 app.get("/users/me", authenticate, (req, res) => {
-  res.send(req.user);
+  res.send(req.user.toJson());
 });
 
 module.exports = { app };
