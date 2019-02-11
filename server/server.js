@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const { ObjectID } = require("mongodb");
 
 const { User } = require("./models/user");
+const { authenticate } = require("./middleware/authenticate");
 const { Todo } = require("./models/todo");
 
 const PORT = process.env.PORT || 3000;
@@ -190,23 +191,29 @@ app.delete("/users/:id", (req, res) => {
     });
 });
 
+app.post("/users/login", (req, res) => {
+  const { email, password } = req.body;
+
+  User.findByCredentials(email, password)
+    .then(user => {
+      return user.generateAuthToken().then(token => {
+        res.header("x-auth", token).send(user.toJson());
+      });
+    })
+    .catch(e => {
+      res.status(400).send("incorrect email or password");
+    });
+});
+
 app.listen(PORT, () => {
   console.log(`Started up at port ${PORT}`);
 });
 
-app.get("/users/me", (req, res) => {
-  const token = req.header("x-auth");
+//Here we're creating a middleware
+//processing won't continue until next is called
 
-  User.findByToken(token)
-    .then(user => {
-      if (!user) {
-        return Promise.reject();
-      }
-      res.send(user.toJson());
-    })
-    .catch(e => {
-      res.status(401).send(e);
-    });
+app.get("/users/me", authenticate, (req, res) => {
+  res.send(req.user);
 });
 
 module.exports = { app };
