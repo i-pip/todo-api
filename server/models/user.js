@@ -3,7 +3,6 @@ const validator = require("validator");
 const _ = require("lodash");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const SALT = "some_secret";
 
 //A schema allows you to add custom methods to your model
 const UserSchema = new mongoose.Schema({
@@ -41,7 +40,7 @@ UserSchema.methods.generateAuthToken = function() {
   let user = this;
   let access = "auth";
   let token = jwt
-    .sign({ _id: user._id.toHexString(), access }, SALT)
+    .sign({ _id: user._id.toHexString(), access }, process.env.JWT_SECRET)
     .toString();
   // user.tokens.push({ access, token }); // No longer works no new mongo
   user.tokens = user.tokens.concat([{ access, token }]);
@@ -64,7 +63,7 @@ UserSchema.statics.findByToken = function(token) {
   let decoded;
 
   try {
-    decoded = jwt.verify(token, SALT);
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
     // return new Promise((resolve, reject) => {
     //   reject("Invalid token");
